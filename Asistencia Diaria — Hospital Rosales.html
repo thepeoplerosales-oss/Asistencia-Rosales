@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Asistencia Diaria — Hospital Rosales</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --verde:#1a7a56;--verde-claro:#e6f5ef;--verde-texto:#0d4f37;
+  --azul:#1a4fa0;--azul-claro:#e8f0fc;--azul-texto:#0d2f66;
+  --amarillo:#c47a00;--amarillo-claro:#fff4e0;
+  --rojo:#c0392b;--rojo-claro:#fdecea;
+  --naranja:#d35400;--naranja-claro:#fdf0e8;
+  --morado:#6c3483;--morado-claro:#f4ecf7;
+  --gris-bg:#f5f5f3;--gris-borde:#e0dfd8;--gris-texto:#6b6b67;
+  --texto:#1a1a18;--blanco:#ffffff;--radio:12px;--radio-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--gris-bg);color:var(--texto);font-size:15px;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+.topbar{background:var(--blanco);border-bottom:1px solid var(--gris-borde);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+.topbar-logo{width:32px;height:32px;background:var(--verde);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.topbar-info{flex:1;}
+.topbar-title{font-size:14px;font-weight:600;color:var(--texto);line-height:1.2;}
+.topbar-sub{font-size:11px;color:var(--gris-texto);}
+.back-btn{background:none;border:none;font-size:13px;color:var(--azul);cursor:pointer;font-family:inherit;padding:4px 0;font-weight:500;}
+.home-wrap{flex:1;padding:24px 16px;display:flex;flex-direction:column;gap:10px;}
+.home-header{margin-bottom:4px;}
+.home-header h1{font-size:22px;font-weight:600;color:var(--texto);}
+.home-header p{font-size:13px;color:var(--gris-texto);margin-top:4px;}
+.home-fecha{font-family:'DM Mono',monospace;font-size:11px;background:var(--gris-bg);border:1px solid var(--gris-borde);border-radius:6px;padding:4px 8px;display:inline-block;margin-top:8px;color:var(--gris-texto);}
+.role-card{background:var(--blanco);border:1px solid var(--gris-borde);border-radius:var(--radio);padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color 0.15s;}
+.role-card:active{transform:scale(0.99);}
+.role-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.role-card-text h3{font-size:14px;font-weight:600;color:var(--texto);}
+.role-card-text p{font-size:12px;color:var(--gris-texto);margin-top:2px;}
+.role-arrow{margin-left:auto;font-size:20px;color:#c0bfb8;flex-shrink:0;}
+.form-body{flex:1;padding:16px;display:flex;flex-direction:column;overflow-y:auto;}
+.field-group{margin-bottom:14px;}
+.field-label{font-size:12px;font-weight:600;color:var(--gris-texto);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.04em;}
+.field-hint{font-size:11px;color:#9b9b97;margin-top:-3px;margin-bottom:8px;}
+input[type=text],input[type=number],input[type=password],select{width:100%;padding:11px 13px;border:1.5px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:inherit;font-size:15px;color:var(--texto);background:var(--blanco);outline:none;transition:border-color 0.15s;}
+input:focus,select:focus{border-color:var(--azul);}
+.nombre-badge{background:var(--azul-claro);border-radius:var(--radio-sm);padding:9px 12px;font-size:13px;color:var(--azul-texto);margin-bottom:14px;display:none;}
+.turno-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.turno-opt{border:1.5px solid var(--gris-borde);border-radius:var(--radio-sm);padding:10px 4px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;color:var(--gris-texto);background:var(--blanco);user-select:none;}
+.turno-opt.sel-m{background:var(--azul-claro);color:var(--azul-texto);border-color:var(--azul);}
+.turno-opt.sel-t{background:var(--amarillo-claro);color:#7a4c00;border-color:var(--amarillo);}
+.turno-opt.sel-n{background:#ede8fc;color:#3d2080;border-color:#7c52d4;}
+.nums-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.num-card{background:var(--gris-bg);border:1.5px solid var(--gris-borde);border-radius:var(--radio-sm);padding:12px;text-align:center;}
+.num-card label{font-size:11px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;}
+.num-card input{border:none;background:transparent;text-align:center;font-family:'DM Mono',monospace;font-size:20px;font-weight:500;}
+.ausencia-section{background:var(--blanco);border:1.5px solid var(--gris-borde);border-radius:var(--radio-sm);padding:12px;margin-bottom:14px;}
+.ausencia-title{font-size:12px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;}
+.ausencia-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;border-radius:var(--radio-sm);}
+.ausencia-row:last-child{margin-bottom:0;}
+.ausencia-suma{background:#e6f5ef;border-left:3px solid var(--verde);}
+.ausencia-resta{background:#fdecea;border-left:3px solid var(--rojo);}
+.ausencia-icon{font-size:16px;flex-shrink:0;}
+.ausencia-label{flex:1;font-size:13px;font-weight:500;color:var(--texto);}
+.ausencia-sub{font-size:10px;color:var(--gris-texto);}
+.ausencia-input{width:60px;font-size:15px;padding:6px;text-align:center;font-family:'DM Mono',monospace;border:1.5px solid var(--gris-borde);border-radius:6px;background:var(--blanco);}
+.resumen-mini{background:var(--verde-claro);border:1px solid #a8d9c4;border-radius:var(--radio-sm);padding:10px 13px;display:none;margin-bottom:14px;}
+.resumen-mini-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+.resumen-mini-row span:last-child{font-weight:600;}
+.divider{height:1px;background:var(--gris-borde);margin:8px 0 14px;}
+.btn-primary{width:100%;padding:14px;font-size:15px;font-weight:600;background:var(--verde);color:var(--blanco);border:none;border-radius:var(--radio-sm);cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.btn-primary:active{opacity:0.85;}
+.btn-secondary{width:100%;padding:12px;font-size:14px;background:transparent;border:1.5px solid var(--gris-borde);border-radius:var(--radio-sm);cursor:pointer;font-family:inherit;color:var(--gris-texto);}
+.confirm-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;}
+.confirm-check{width:64px;height:64px;background:var(--verde-claro);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.confirm-nombre{font-size:17px;font-weight:600;color:var(--texto);text-align:center;}
+.confirm-turno{font-size:13px;color:var(--gris-texto);margin-top:4px;margin-bottom:20px;text-align:center;}
+.confirm-card{background:var(--blanco);border:1px solid var(--gris-borde);border-radius:var(--radio);padding:16px;width:100%;margin-bottom:16px;}
+.confirm-num{font-family:'DM Mono',monospace;font-size:48px;font-weight:500;color:var(--verde);line-height:1;text-align:center;}
+.confirm-num-label{font-size:13px;color:var(--gris-texto);margin-top:4px;text-align:center;}
+.confirm-desglose{margin-top:10px;padding-top:10px;border-top:1px solid var(--gris-borde);display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.confirm-tag{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;}
+.tag-suma{background:var(--verde-claro);color:var(--verde-texto);}
+.tag-resta{background:var(--rojo-claro);color:var(--rojo);}
+.pin-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;}
+.pin-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.pin-title{font-size:17px;font-weight:600;margin-bottom:6px;}
+.pin-sub{font-size:13px;color:var(--gris-texto);margin-bottom:24px;text-align:center;}
+.pin-field-wrap{width:100%;max-width:280px;}
+.pin-field-wrap label{font-size:12px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:8px;}
+.pin-field-wrap input{font-family:'DM Mono',monospace;font-size:22px;letter-spacing:8px;text-align:center;}
+.pin-btn{margin-top:12px;width:100%;padding:13px;font-size:15px;font-weight:600;color:white;border:none;border-radius:var(--radio-sm);cursor:pointer;font-family:inherit;}
+.pin-error{font-size:12px;color:var(--rojo);margin-top:8px;text-align:center;display:none;}
+.panel-body{flex:1;overflow-y:auto;padding-bottom:80px;}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px 0;}
+.metric-card{background:var(--blanco);border:1px solid var(--gris-borde);border-radius:var(--radio-sm);padding:13px 14px;}
+.metric-label{font-size:11px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.04em;}
+.metric-val{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--texto);line-height:1.1;margin-top:2px;}
+.metric-sub{font-size:11px;margin-top:3px;}
+.ok{color:var(--verde);}.warn{color:var(--amarillo);}.danger{color:var(--rojo);}
+.bar-section{padding:12px 16px 4px;}
+.bar-header{display:flex;justify-content:space-between;font-size:12px;color:var(--gris-texto);margin-bottom:6px;font-weight:500;}
+.bar-bg{background:var(--gris-borde);border-radius:6px;height:10px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;transition:width 0.5s;}
+.banner{margin:10px 16px 0;border-radius:var(--radio-sm);padding:9px 12px;font-size:12px;display:none;}
+.tabs{display:flex;gap:6px;padding:14px 16px 10px;}
+.tab{flex:1;text-align:center;padding:7px 4px;font-size:12px;font-weight:500;border-radius:var(--radio-sm);border:1.5px solid var(--gris-borde);cursor:pointer;color:var(--gris-texto);background:var(--blanco);}
+.tab.active{background:var(--azul-claro);color:var(--azul-texto);border-color:var(--azul);}
+.section-label{font-size:11px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.05em;padding:0 16px 8px;}
+.rep-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.rep-row{background:var(--blanco);border:1px solid var(--gris-borde);border-radius:var(--radio-sm);padding:11px 13px;display:flex;align-items:flex-start;gap:11px;}
+.rep-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;font-family:'DM Mono',monospace;margin-top:2px;}
+.rep-info{flex:1;min-width:0;}
+.rep-name{font-size:13px;font-weight:600;color:var(--texto);}
+.rep-detail{font-size:11px;color:var(--gris-texto);margin-top:2px;}
+.rep-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.rep-tag{font-size:10px;padding:2px 6px;border-radius:10px;font-weight:500;}
+.rep-nums{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex-shrink:0;}
+.rep-num{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;}
+.rep-num-label{font-size:10px;color:var(--gris-texto);}
+.empty-state{padding:32px 16px;text-align:center;color:var(--gris-texto);font-size:13px;}
+.wa-btn{position:fixed;bottom:0;left:0;right:0;padding:14px 16px;background:#25d366;color:white;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;}
+.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:12px;font-size:14px;color:var(--gris-texto);}
+.spinner{width:36px;height:36px;border:3px solid var(--gris-borde);border-top-color:var(--verde);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.refresh-btn{background:none;border:1.5px solid var(--gris-borde);border-radius:var(--radio-sm);padding:6px 14px;font-size:12px;color:var(--gris-texto);cursor:pointer;font-family:inherit;margin:10px 16px 0;}
+.vista-btns{display:flex;gap:8px;padding:10px 16px 0;}
+.vista-btn{flex:1;text-align:center;padding:8px 4px;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;border:1.5px solid var(--gris-borde);color:var(--gris-texto);background:var(--gris-bg);}
+.vista-btn.active{color:white;border:none;}
+.nav-row{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;}
+.nav-btn{background:none;border:1.5px solid var(--gris-borde);border-radius:8px;padding:5px 14px;cursor:pointer;font-size:16px;}
+.nav-title{flex:1;text-align:center;font-size:15px;font-weight:600;color:var(--texto);}
+.bajas-card{background:var(--rojo-claro);border:1px solid #e8b4b0;border-radius:var(--radio-sm);padding:12px;margin:0 16px 10px;}
+.bajas-title{font-size:12px;font-weight:600;color:var(--rojo);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;}
+.bajas-row{display:flex;justify-content:space-between;font-size:13px;color:var(--texto);padding:3px 0;}
+.nota-cliente{background:#fffde7;border:1px solid #f9ca24;border-radius:var(--radio-sm);padding:12px;margin:10px 16px;font-size:12px;color:#7a6000;line-height:1.5;}
+.semana-row{background:var(--blanco);border:1px solid var(--gris-borde);border-radius:var(--radio-sm);padding:11px 13px;margin-bottom:8px;}
+.semana-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.semana-titulo{font-size:13px;font-weight:600;color:var(--texto);}
+.semana-pct{font-size:13px;font-weight:600;}
+.semana-detalle{display:flex;gap:12px;flex-wrap:wrap;}
+.semana-item{font-size:11px;color:var(--gris-texto);}
+</style>
+</head>
+<body>
+
+<!-- INICIO -->
+<div id="s-home" class="screen active">
+  <div class="topbar">
+    <div class="topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" width="18" height="18"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
+    <div class="topbar-info"><div class="topbar-title">Hospital Rosales</div><div class="topbar-sub">Sistema de asistencia diaria</div></div>
+  </div>
+  <div class="home-wrap">
+    <div class="home-header"><h1>Bienvenido</h1><p>Seleccione su rol para continuar</p><div class="home-fecha" id="home-fecha"></div></div>
+    <div class="role-card" onclick="ir('s-supervisor')">
+      <div class="role-icon" style="background:#e8f0fc;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a4fa0" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+      <div class="role-card-text"><h3>Soy supervisor</h3><p>Reportar asistencia de mi grupo</p></div>
+      <span class="role-arrow">›</span>
+    </div>
+    <div class="role-card" onclick="ir('s-pin')">
+      <div class="role-icon" style="background:#e6f5ef;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7a56" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="role-card-text"><h3>Supervisor general / Gerente</h3><p>Panel completo con metas y análisis</p></div>
+      <span class="role-arrow">›</span>
+    </div>
+    <div class="role-card" onclick="ir('s-pin-cliente')">
+      <div class="role-icon" style="background:#faeeda;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c47a00" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="role-card-text"><h3>Cliente — Hospital Rosales</h3><p>Portal de transparencia en tiempo real</p></div>
+      <span class="role-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- PIN GERENTE -->
+<div id="s-pin" class="screen">
+  <div class="topbar"><button class="back-btn" onclick="ir('s-home')">‹ Inicio</button><div class="topbar-info" style="text-align:center;"><div class="topbar-title">Acceso gerencia</div></div><div style="width:60px;"></div></div>
+  <div class="pin-body">
+    <div class="pin-icon" style="background:var(--verde-claro);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7a56" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div class="pin-title">Vista de gerencia</div>
+    <div class="pin-sub">Solo personal autorizado</div>
+    <div class="pin-field-wrap">
+      <label>PIN de acceso</label>
+      <input type="password" id="pin-field" maxlength="10" placeholder="·····" autocomplete="off">
+      <div class="pin-error" id="pin-error">PIN incorrecto</div>
+      <button class="pin-btn" style="background:var(--verde);" onclick="verificarPin()">Entrar al panel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN CLIENTE -->
+<div id="s-pin-cliente" class="screen">
+  <div class="topbar"><button class="back-btn" onclick="ir('s-home')">‹ Inicio</button><div class="topbar-info" style="text-align:center;"><div class="topbar-title">Portal del cliente</div></div><div style="width:60px;"></div></div>
+  <div class="pin-body">
+    <div class="pin-icon" style="background:#faeeda;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c47a00" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+    <div class="pin-title">Portal Hospital Rosales</div>
+    <div class="pin-sub">Ingrese su código de acceso</div>
+    <div class="pin-field-wrap">
+      <label>Código de acceso</label>
+      <input type="password" id="pin-cliente-field" maxlength="10" placeholder="·····" autocomplete="off">
+      <div class="pin-error" id="pin-cliente-error">Código incorrecto</div>
+      <button class="pin-btn" style="background:var(--amarillo);" onclick="verificarPinCliente()">Entrar al portal</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUPERVISOR -->
+<div id="s-supervisor" class="screen">
+  <div class="topbar"><button class="back-btn" onclick="ir('s-home')">‹ Inicio</button><div class="topbar-info" style="text-align:center;"><div class="topbar-title">Mi reporte del día</div></div><div style="width:60px;"></div></div>
+  <div class="form-body">
+    <div class="field-group">
+      <label class="field-label">Su nombre completo</label>
+      <p class="field-hint">Escríbalo tal como aparece en planilla</p>
+      <input type="text" id="inp-nombre" placeholder="Ej: María López" oninput="onNombreInput()" autocomplete="off">
+      <div class="nombre-badge" id="nombre-badge">Reportando como: <strong id="nombre-badge-text"></strong></div>
+    </div>
+    <div id="zona-section" style="display:none;">
+      <div class="field-group">
+        <label class="field-label">Zona que supervisa</label>
+        <select id="sel-zona">
+          <option value="">— Seleccione la zona —</option>
+          <option value="Zona Interna">Zona Interna</option>
+          <option value="Zona Externa">Zona Externa</option>
+          <option value="Emergencias">Emergencias</option>
+          <option value="Otra">Otra</option>
+        </select>
+      </div>
+    </div>
+    <div id="turno-section" style="display:none;">
+      <div class="field-group">
+        <label class="field-label">Turno que reporta</label>
+        <div class="turno-grid">
+          <div class="turno-opt" id="t-m" onclick="selTurno('Mañana')">☀️ Mañana</div>
+          <div class="turno-opt" id="t-t" onclick="selTurno('Tarde')">🌤 Tarde</div>
+          <div class="turno-opt" id="t-n" onclick="selTurno('Noche')">🌙 Noche</div>
+        </div>
+      </div>
+    </div>
+    <div id="nums-section" style="display:none;">
+      <div class="field-group">
+        <label class="field-label">Presentes hoy</label>
+        <div class="nums-grid">
+          <div class="num-card"><label>Presentes</label><input type="number" id="n-presentes" min="0" placeholder="0" oninput="actualizarResumen()"></div>
+          <div class="num-card"><label>Total ausentes</label><input type="number" id="n-ausentes-total" min="0" placeholder="0" readonly style="background:#f0f0ee;color:var(--gris-texto);"></div>
+        </div>
+      </div>
+
+      <div class="ausencia-section">
+        <div class="ausencia-title">Desglose de ausencias</div>
+        <!-- Suman a los 630 -->
+        <div style="font-size:10px;font-weight:600;color:var(--verde);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">✅ Siguen en planilla (suman a los 630)</div>
+        <div class="ausencia-row ausencia-suma">
+          <span class="ausencia-icon">🏥</span>
+          <div class="ausencia-label">Incapacidad<div class="ausencia-sub">Médica certificada</div></div>
+          <input type="number" class="ausencia-input" id="a-incapacidad" min="0" placeholder="0" oninput="calcAusentes()">
+        </div>
+        <div class="ausencia-row ausencia-suma">
+          <span class="ausencia-icon">😴</span>
+          <div class="ausencia-label">Descanso<div class="ausencia-sub">Día libre programado</div></div>
+          <input type="number" class="ausencia-input" id="a-descanso" min="0" placeholder="0" oninput="calcAusentes()">
+        </div>
+        <!-- Restan de los 630 -->
+        <div style="font-size:10px;font-weight:600;color:var(--rojo);text-transform:uppercase;letter-spacing:0.04em;margin:10px 0 6px;">❌ Ya no están en planilla (restan de los 630)</div>
+        <div class="ausencia-row ausencia-resta">
+          <span class="ausencia-icon">🚪</span>
+          <div class="ausencia-label">Renuncia<div class="ausencia-sub">Salida voluntaria</div></div>
+          <input type="number" class="ausencia-input" id="a-renuncia" min="0" placeholder="0" oninput="calcAusentes()">
+        </div>
+        <div class="ausencia-row ausencia-resta">
+          <span class="ausencia-icon">🏃</span>
+          <div class="ausencia-label">Abandono<div class="ausencia-sub">Sin aviso previo</div></div>
+          <input type="number" class="ausencia-input" id="a-abandono" min="0" placeholder="0" oninput="calcAusentes()">
+        </div>
+        <div class="ausencia-row ausencia-resta">
+          <span class="ausencia-icon">⚠️</span>
+          <div class="ausencia-label">Despido<div class="ausencia-sub">Salida involuntaria</div></div>
+          <input type="number" class="ausencia-input" id="a-despido" min="0" placeholder="0" oninput="calcAusentes()">
+        </div>
+      </div>
+
+      <div class="resumen-mini" id="resumen-mini">
+        <div class="resumen-mini-row"><span>✅ Presentes</span><span id="rm-presentes" style="color:var(--verde);">0</span></div>
+        <div class="resumen-mini-row"><span>🏥 Incapacidad + Descanso</span><span id="rm-suma" style="color:var(--azul);">0</span></div>
+        <div class="resumen-mini-row"><span>❌ Bajas (renuncias/abandonos/despidos)</span><span id="rm-resta" style="color:var(--rojo);">0</span></div>
+        <div class="resumen-mini-row" style="border-top:1px solid #a8d9c4;margin-top:4px;padding-top:4px;"><span><strong>Cobertura real de tu grupo</strong></span><span id="rm-cobertura" style="color:var(--verde-texto);font-weight:600;">0</span></div>
+      </div>
+
+      <div class="divider"></div>
+      <button class="btn-primary" id="btn-enviar" onclick="enviarReporte()">Enviar reporte del día</button>
+      <button class="btn-secondary" onclick="ir('s-home')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMACIÓN -->
+<div id="s-confirmacion" class="screen">
+  <div class="topbar"><div class="topbar-info" style="text-align:center;width:100%;"><div class="topbar-title">Reporte enviado ✓</div></div></div>
+  <div class="confirm-body">
+    <div class="confirm-check"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1a7a56" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="confirm-nombre" id="conf-nombre">—</div>
+    <div class="confirm-turno" id="conf-turno">—</div>
+    <div class="confirm-card">
+      <div class="confirm-num" id="conf-presentes">—</div>
+      <div class="confirm-num-label">conserjes presentes</div>
+      <div class="confirm-desglose" id="conf-desglose"></div>
+    </div>
+    <div style="background:#e6f5ef;border-radius:8px;padding:10px 14px;font-size:12px;color:#0d4f37;margin-bottom:16px;width:100%;text-align:center;">✅ Guardado en Google Sheets</div>
+    <button class="btn-primary" style="width:100%;max-width:320px;" onclick="ir('s-home')">Volver al inicio</button>
+  </div>
+</div>
+
+<!-- PANEL GERENTE -->
+<div id="s-general" class="screen">
+  <div class="topbar"><button class="back-btn" onclick="ir('s-home')">‹ Salir</button><div class="topbar-info" style="text-align:center;"><div class="topbar-title">Panel general</div><div class="topbar-sub" id="panel-fecha"></div></div><div style="width:60px;"></div></div>
+  <div class="panel-body">
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-label">Presentes hoy</div><div class="metric-val" id="g-total">—</div><div class="metric-sub" id="g-estado">cargando...</div></div>
+      <div class="metric-card"><div class="metric-label">Cobertura real</div><div class="metric-val" id="g-pct">—</div><div class="metric-sub" id="g-faltan" style="color:var(--gris-texto);">meta: 630</div></div>
+      <div class="metric-card"><div class="metric-label">Fuerza activa</div><div class="metric-val" id="g-activa">—</div><div class="metric-sub" id="g-bajas-sub" style="color:var(--rojo);">—</div></div>
+      <div class="metric-card"><div class="metric-label">Ausentes hoy</div><div class="metric-val" id="g-ausentes">—</div><div class="metric-sub" style="color:var(--gris-texto);">todos los grupos</div></div>
+    </div>
+    <div class="bar-section">
+      <div class="bar-header"><span>Cobertura del día</span><span id="g-pct2">0%</span></div>
+      <div class="bar-bg"><div class="bar-fill" id="g-barra" style="width:0%;background:var(--verde);"></div></div>
+    </div>
+    <div class="banner" id="g-banner"></div>
+    <button class="refresh-btn" onclick="cargarDatos()">↻ Actualizar datos</button>
+    <div class="vista-btns">
+      <div class="vista-btn active" id="vb-hoy" onclick="cambiarVista('hoy',this)" style="background:var(--verde);color:white;">📋 Hoy</div>
+      <div class="vista-btn" id="vb-dia" onclick="cambiarVista('dia',this)">📅 Por día</div>
+      <div class="vista-btn" id="vb-mes" onclick="cambiarVista('mes',this)">📊 Mes</div>
+    </div>
+
+    <!-- VISTA HOY -->
+    <div id="vista-hoy">
+      <div class="tabs" style="margin-top:8px;">
+        <div class="tab active" onclick="filtrarG('todos',this)">Todos</div>
+        <div class="tab" onclick="filtrarG('Mañana',this)">Mañana</div>
+        <div class="tab" onclick="filtrarG('Tarde',this)">Tarde</div>
+        <div class="tab" onclick="filtrarG('Noche',this)">Noche</div>
+      </div>
+      <div class="section-label">Por supervisor</div>
+      <div class="rep-list" id="g-lista"><div class="empty-state">Cargando...</div></div>
+    </div>
+
+    <!-- VISTA DÍA -->
+    <div id="vista-dia" style="display:none;">
+      <div class="nav-row"><button class="nav-btn" onclick="cambiarDia(-1)">‹</button><div class="nav-title" id="g-dia-titulo">Hoy</div><button class="nav-btn" onclick="cambiarDia(1)">›</button></div>
+      <div class="metrics-grid" style="padding-top:0;">
+        <div class="metric-card"><div class="metric-label">Presentes</div><div class="metric-val ok" id="g-dia-pres">—</div></div>
+        <div class="metric-card"><div class="metric-label">Cobertura</div><div class="metric-val" id="g-dia-pct">—</div></div>
+      </div>
+      <div style="padding:10px 16px 0;">
+        <div class="bajas-card" id="g-dia-bajas-card">
+          <div class="bajas-title">⚠️ Bajas del día</div>
+          <div id="g-dia-bajas-content"></div>
+        </div>
+      </div>
+      <div class="tabs" style="margin-top:10px;">
+        <div class="tab active" onclick="filtrarDia('todos',this)">Todos</div>
+        <div class="tab" onclick="filtrarDia('Mañana',this)">Mañana</div>
+        <div class="tab" onclick="filtrarDia('Tarde',this)">Tarde</div>
+        <div class="tab" onclick="filtrarDia('Noche',this)">Noche</div>
+      </div>
+      <div class="section-label">Registros del día</div>
+      <div class="rep-list" id="g-dia-lista"><div class="empty-state">Sin reportes</div></div>
+    </div>
+
+    <!-- VISTA MES -->
+    <div id="vista-mes" style="display:none;padding:0 16px;">
+      <div class="nav-row" style="padding:14px 0 10px;"><button class="nav-btn" onclick="cambiarMes(-1)">‹</button><div class="nav-title" id="g-mes-titulo">Mayo 2026</div><button class="nav-btn" onclick="cambiarMes(1)">›</button></div>
+      <div class="metrics-grid" style="padding:0 0 10px;">
+        <div class="metric-card"><div class="metric-label">Presentes promedio/día</div><div class="metric-val" id="g-mes-prom">—</div><div class="metric-sub" style="color:var(--gris-texto);">promedio diario</div></div>
+        <div class="metric-card"><div class="metric-label">Cobertura promedio</div><div class="metric-val" id="g-mes-pct">—</div><div class="metric-sub" id="g-mes-dias" style="color:var(--gris-texto);">del mes</div></div>
+        <div class="metric-card"><div class="metric-label">Bajas del mes</div><div class="metric-val danger" id="g-mes-bajas">—</div><div class="metric-sub" style="color:var(--gris-texto);">renuncias+abandonos+despidos</div></div>
+        <div class="metric-card"><div class="metric-label">Incapacidades</div><div class="metric-val" style="color:var(--azul);" id="g-mes-inc">—</div><div class="metric-sub" style="color:var(--gris-texto);">días acumulados</div></div>
+      </div>
+      <div class="section-label" style="padding:0 0 8px;">Por semana</div>
+      <div id="g-semanas"></div>
+    </div>
+  </div>
+  <button class="wa-btn" onclick="abrirWA()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    Enviar resumen por WhatsApp
+  </button>
+</div>
+
+<!-- PANEL CLIENTE -->
+<div id="s-cliente" class="screen">
+  <div class="topbar" style="background:#fff8e8;border-bottom-color:#f0c060;">
+    <button class="back-btn" onclick="ir('s-home')" style="color:#c47a00;">‹ Salir</button>
+    <div class="topbar-info" style="text-align:center;"><div class="topbar-title" style="color:#7a4c00;">Hospital Rosales</div><div class="topbar-sub" style="color:#a07030;">Portal de transparencia</div></div>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="panel-body">
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-label">Presentes hoy</div><div class="metric-val" id="c-total">—</div><div class="metric-sub" id="c-estado">cargando...</div></div>
+      <div class="metric-card"><div class="metric-label">Cobertura</div><div class="metric-val" id="c-pct">—</div><div class="metric-sub" style="color:var(--gris-texto);">meta: 630</div></div>
+      <div class="metric-card"><div class="metric-label">Fuerza activa</div><div class="metric-val" id="c-activa">—</div><div class="metric-sub" id="c-bajas-sub" style="color:var(--rojo);">—</div></div>
+      <div class="metric-card"><div class="metric-label">Grupos reportando</div><div class="metric-val" id="c-grupos">—</div><div class="metric-sub" style="color:var(--gris-texto);">supervisores</div></div>
+    </div>
+    <div class="bar-section">
+      <div class="bar-header"><span>Cobertura del día</span><span id="c-pct2">0%</span></div>
+      <div class="bar-bg"><div class="bar-fill" id="c-barra" style="width:0%;background:var(--verde);"></div></div>
+    </div>
+    <div class="nota-cliente">ℹ️ <strong>Nota:</strong> Los números reflejan el reporte por grupos de supervisores. El conteo individual puede variar ±5% por diferencias de turno y hora de registro. Ante diferencias, solicite conciliación con su ejecutivo de cuenta.</div>
+    <button class="refresh-btn" onclick="cargarDatosCliente()">↻ Actualizar</button>
+    <div class="vista-btns">
+      <div class="vista-btn active" id="cvb-hoy" onclick="cambiarVistaC('hoy',this)" style="background:var(--amarillo);color:white;">📋 Hoy</div>
+      <div class="vista-btn" id="cvb-dia" onclick="cambiarVistaC('dia',this)">📅 Por día</div>
+      <div class="vista-btn" id="cvb-mes" onclick="cambiarVistaC('mes',this)">📊 Mes</div>
+    </div>
+
+    <!-- HOY CLIENTE -->
+    <div id="c-vista-hoy">
+      <div class="tabs" style="margin-top:8px;">
+        <div class="tab active" onclick="filtrarC('todos',this)">Todos</div>
+        <div class="tab" onclick="filtrarC('Mañana',this)">Mañana</div>
+        <div class="tab" onclick="filtrarC('Tarde',this)">Tarde</div>
+        <div class="tab" onclick="filtrarC('Noche',this)">Noche</div>
+      </div>
+      <div class="section-label">Registros por supervisor</div>
+      <div class="rep-list" id="c-lista-hoy"><div class="empty-state">Cargando...</div></div>
+    </div>
+
+    <!-- DÍA CLIENTE -->
+    <div id="c-vista-dia" style="display:none;">
+      <div class="nav-row"><button class="nav-btn" onclick="cambiarDiaC(-1)">‹</button><div class="nav-title" id="c-dia-titulo">Hoy</div><button class="nav-btn" onclick="cambiarDiaC(1)">›</button></div>
+      <div class="metrics-grid" style="padding-top:0;">
+        <div class="metric-card"><div class="metric-label">Presentes</div><div class="metric-val ok" id="c-dia-pres">—</div></div>
+        <div class="metric-card"><div class="metric-label">Cobertura</div><div class="metric-val" id="c-dia-pct">—</div></div>
+      </div>
+      <div style="padding:10px 16px 0;display:flex;gap:8px;">
+        <div style="flex:1;background:var(--verde-claro);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:11px;color:var(--verde-texto);font-weight:600;">En planilla</div><div style="font-size:20px;font-weight:600;color:var(--verde);" id="c-dia-suma">—</div><div style="font-size:10px;color:var(--gris-texto);">inc+descanso</div></div>
+        <div style="flex:1;background:var(--rojo-claro);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:11px;color:var(--rojo);font-weight:600;">Bajas</div><div style="font-size:20px;font-weight:600;color:var(--rojo);" id="c-dia-resta">—</div><div style="font-size:10px;color:var(--gris-texto);">ren+aban+desp</div></div>
+      </div>
+      <div class="tabs" style="margin-top:10px;">
+        <div class="tab active" onclick="filtrarDiaC('todos',this)">Todos</div>
+        <div class="tab" onclick="filtrarDiaC('Mañana',this)">Mañana</div>
+        <div class="tab" onclick="filtrarDiaC('Tarde',this)">Tarde</div>
+        <div class="tab" onclick="filtrarDiaC('Noche',this)">Noche</div>
+      </div>
+      <div class="section-label">Registros del día</div>
+      <div class="rep-list" id="c-dia-lista"><div class="empty-state">Sin reportes</div></div>
+    </div>
+
+    <!-- MES CLIENTE -->
+    <div id="c-vista-mes" style="display:none;padding:0 16px;">
+      <div class="nav-row" style="padding:14px 0 10px;"><button class="nav-btn" onclick="cambiarMesC(-1)">‹</button><div class="nav-title" id="c-mes-titulo">Mayo 2026</div><button class="nav-btn" onclick="cambiarMesC(1)">›</button></div>
+      <div class="metrics-grid" style="padding:0 0 10px;">
+        <div class="metric-card"><div class="metric-label">Prom. diario</div><div class="metric-val" id="c-mes-prom">—</div><div class="metric-sub" style="color:var(--gris-texto);">presentes/día</div></div>
+        <div class="metric-card"><div class="metric-label">Cobertura prom.</div><div class="metric-val" id="c-mes-pct">—</div><div class="metric-sub" id="c-mes-dias" style="color:var(--gris-texto);">del mes</div></div>
+        <div class="metric-card"><div class="metric-label">Bajas del mes</div><div class="metric-val danger" id="c-mes-bajas">—</div><div class="metric-sub" style="color:var(--gris-texto);">ren+aban+despidos</div></div>
+        <div class="metric-card"><div class="metric-label">Incapacidades</div><div class="metric-val" style="color:var(--azul);" id="c-mes-inc">—</div><div class="metric-sub" style="color:var(--gris-texto);">días acumulados</div></div>
+      </div>
+      <div class="nota-cliente" style="margin:0 0 10px;">📊 <strong>¿Por qué los números difieren?</strong> Nuestro sistema registra por grupos de supervisores. Su conteo es individual. La diferencia esperada es ±5%. Las bajas (renuncias, abandonos, despidos) reducen temporalmente la cobertura mientras gestionamos el reemplazo.</div>
+      <div class="section-label" style="padding:0 0 8px;">Por semana</div>
+      <div id="c-semanas"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const META = 630;
+const PIN = '40336';
+const PIN_CLIENTE = '10126';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcXvsbsx2co0UQzypg_syrCsdGBU4ouFw2e8Dxw8bh4oyUbVI0l3zAEWAW4_F9uS56UA/exec';
+const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MESES_LARGO = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+let todosLosReportes = [];
+let reportesHoy = [];
+let turnoSel = null;
+let filtroG = 'todos';
+let diaOffset = 0;
+let filtroDia = 'todos';
+let mesVista = new Date().getMonth();
+let anioVista = new Date().getFullYear();
+let vistaG = 'hoy';
+let filtroC = 'todos';
+let diaOffsetC = 0;
+let filtroDiaC = 'todos';
+let mesVistaC = new Date().getMonth();
+let anioVistaC = new Date().getFullYear();
+let vistaC = 'hoy';
+
+function fechaHoy(){const h=new Date();return `${DIAS[h.getDay()]} ${h.getDate()} de ${MESES[h.getMonth()]} ${h.getFullYear()}`;}
+function horaAhora(){return new Date().toLocaleTimeString('es-SV',{hour:'2-digit',minute:'2-digit'});}
+function iniciales(n){return n.trim().split(' ').filter(Boolean).map(p=>p[0]).slice(0,2).join('').toUpperCase()||'?';}
+function avatarStyle(t){if(t==='Mañana')return 'background:#e8f0fc;color:#1a4fa0;';if(t==='Tarde')return 'background:#fff4e0;color:#7a4c00;';return 'background:#ede8fc;color:#3d2080;';}
+function fechaStr(offset){const d=new Date();d.setDate(d.getDate()+offset);return d.toLocaleDateString('es-SV');}
+function fechaNombre(offset){const d=new Date();d.setDate(d.getDate()+offset);return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;}
+
+document.getElementById('home-fecha').textContent = fechaHoy();
+
+function mostrarLoading(msg){let ov=document.getElementById('loading-overlay');if(!ov){ov=document.createElement('div');ov.id='loading-overlay';ov.className='loading-overlay';ov.innerHTML='<div class="spinner"></div><div id="loading-msg">Cargando...</div>';document.body.appendChild(ov);}document.getElementById('loading-msg').textContent=msg||'Cargando...';ov.style.display='flex';}
+function ocultarLoading(){const ov=document.getElementById('loading-overlay');if(ov)ov.style.display='none';}
+
+function ir(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='s-general'){document.getElementById('panel-fecha').textContent=fechaHoy();cargarDatos();}
+  if(id==='s-cliente') cargarDatosCliente();
+  if(id==='s-pin'){document.getElementById('pin-field').value='';document.getElementById('pin-error').style.display='none';}
+  if(id==='s-pin-cliente'){document.getElementById('pin-cliente-field').value='';document.getElementById('pin-cliente-error').style.display='none';}
+  if(id==='s-supervisor') resetForm();
+}
+
+function verificarPin(){if(document.getElementById('pin-field').value===PIN){ir('s-general');}else{document.getElementById('pin-error').style.display='block';document.getElementById('pin-field').value='';}}
+document.getElementById('pin-field').addEventListener('keydown',e=>{if(e.key==='Enter')verificarPin();});
+function verificarPinCliente(){if(document.getElementById('pin-cliente-field').value===PIN_CLIENTE){ir('s-cliente');}else{document.getElementById('pin-cliente-error').style.display='block';document.getElementById('pin-cliente-field').value='';}}
+document.getElementById('pin-cliente-field').addEventListener('keydown',e=>{if(e.key==='Enter')verificarPinCliente();});
+
+function resetForm(){
+  document.getElementById('inp-nombre').value='';
+  document.getElementById('nombre-badge').style.display='none';
+  document.getElementById('zona-section').style.display='none';
+  document.getElementById('turno-section').style.display='none';
+  document.getElementById('nums-section').style.display='none';
+  document.getElementById('resumen-mini').style.display='none';
+  document.getElementById('sel-zona').value='';
+  document.getElementById('n-presentes').value='';
+  document.getElementById('n-ausentes-total').value='';
+  ['incapacidad','descanso','renuncia','abandono','despido'].forEach(x=>document.getElementById('a-'+x).value='');
+  turnoSel=null;
+  ['m','t','n'].forEach(x=>document.getElementById('t-'+x).className='turno-opt');
+}
+
+function onNombreInput(){
+  const val=document.getElementById('inp-nombre').value.trim();
+  const badge=document.getElementById('nombre-badge');
+  if(val.length>=3){badge.style.display='block';document.getElementById('nombre-badge-text').textContent=val;document.getElementById('zona-section').style.display='block';document.getElementById('turno-section').style.display='block';}
+  else{badge.style.display='none';document.getElementById('zona-section').style.display='none';document.getElementById('turno-section').style.display='none';document.getElementById('nums-section').style.display='none';turnoSel=null;}
+}
+
+function selTurno(t){
+  turnoSel=t;
+  document.getElementById('t-m').className='turno-opt'+(t==='Mañana'?' sel-m':'');
+  document.getElementById('t-t').className='turno-opt'+(t==='Tarde'?' sel-t':'');
+  document.getElementById('t-n').className='turno-opt'+(t==='Noche'?' sel-n':'');
+  document.getElementById('nums-section').style.display='block';
+}
+
+function calcAusentes(){
+  const inc=parseInt(document.getElementById('a-incapacidad').value)||0;
+  const des=parseInt(document.getElementById('a-descanso').value)||0;
+  const ren=parseInt(document.getElementById('a-renuncia').value)||0;
+  const aba=parseInt(document.getElementById('a-abandono').value)||0;
+  const dep=parseInt(document.getElementById('a-despido').value)||0;
+  const total=inc+des+ren+aba+dep;
+  const suma=inc+des;
+  const resta=ren+aba+dep;
+  const pres=parseInt(document.getElementById('n-presentes').value)||0;
+  document.getElementById('n-ausentes-total').value=total;
+  const box=document.getElementById('resumen-mini');
+  if(total>0||pres>0){
+    box.style.display='block';
+    document.getElementById('rm-presentes').textContent=pres;
+    document.getElementById('rm-suma').textContent=suma;
+    document.getElementById('rm-resta').textContent=resta;
+    document.getElementById('rm-cobertura').textContent=pres+suma;
+  } else {box.style.display='none';}
+}
+
+function actualizarResumen(){calcAusentes();}
+
+function enviarReporte(){
+  const nombre=document.getElementById('inp-nombre').value.trim();
+  const zona=document.getElementById('sel-zona').value;
+  if(!nombre||nombre.length<3){alert('Por favor escriba su nombre completo.');return;}
+  if(!turnoSel){alert('Seleccione el turno.');return;}
+  const pres=parseInt(document.getElementById('n-presentes').value)||0;
+  const inc=parseInt(document.getElementById('a-incapacidad').value)||0;
+  const des=parseInt(document.getElementById('a-descanso').value)||0;
+  const ren=parseInt(document.getElementById('a-renuncia').value)||0;
+  const aba=parseInt(document.getElementById('a-abandono').value)||0;
+  const dep=parseInt(document.getElementById('a-despido').value)||0;
+  if(pres===0&&(inc+des+ren+aba+dep)===0){alert('Ingrese al menos el número de presentes.');return;}
+  const payload={
+    fecha:new Date().toLocaleDateString('es-SV'),
+    hora:horaAhora(),nombre,zona:zona||'—',turno:turnoSel,
+    presentes:pres,ausentes:inc+des+ren+aba+dep,
+    incapacidad:inc,descanso:des,renuncia:ren,abandono:aba,despido:dep
+  };
+  mostrarLoading('Guardando reporte...');
+  document.getElementById('btn-enviar').disabled=true;
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(()=>{
+      ocultarLoading();
+      document.getElementById('conf-nombre').textContent=nombre;
+      document.getElementById('conf-turno').textContent=`${turnoSel} · ${zona||'—'} · ${fechaHoy()}`;
+      document.getElementById('conf-presentes').textContent=pres;
+      const tags=[];
+      if(inc>0) tags.push(`<span class="confirm-tag tag-suma">🏥 Incapacidad: ${inc}</span>`);
+      if(des>0) tags.push(`<span class="confirm-tag tag-suma">😴 Descanso: ${des}</span>`);
+      if(ren>0) tags.push(`<span class="confirm-tag tag-resta">🚪 Renuncia: ${ren}</span>`);
+      if(aba>0) tags.push(`<span class="confirm-tag tag-resta">🏃 Abandono: ${aba}</span>`);
+      if(dep>0) tags.push(`<span class="confirm-tag tag-resta">⚠️ Despido: ${dep}</span>`);
+      document.getElementById('conf-desglose').innerHTML=tags.join('');
+      document.getElementById('btn-enviar').disabled=false;
+      ir('s-confirmacion');
+    }).catch(()=>{ocultarLoading();document.getElementById('btn-enviar').disabled=false;alert('Error al guardar. Verifique su conexión.');});
+}
+
+function parsearFecha(f) {
+  if(!f) return '';
+  const s = String(f);
+  // ISO format: 2026-05-04T06:00:00.000Z
+  if(s.includes('T') || s.includes('-')) {
+    const d = new Date(s);
+    if(!isNaN(d)) return `${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()}`;
+  }
+  return s;
+}
+
+function parsearReporte(r){
+  return {
+    fecha:parsearFecha(r[0]),hora:r[1],nombre:r[2],zona:r[3],turno:r[4],
+    presentes:parseInt(r[5])||0,ausentes:parseInt(r[6])||0,
+    incapacidad:parseInt(r[7])||0,descanso:parseInt(r[8])||0,
+    renuncia:parseInt(r[9])||0,abandono:parseInt(r[10])||0,despido:parseInt(r[11])||0
+  };
+}
+
+function cargarDatos(){
+  mostrarLoading('Cargando reportes...');
+  fetch(SCRIPT_URL+'?t='+Date.now())
+    .then(r=>r.json())
+    .then(data=>{
+      ocultarLoading();
+      if(data.status==='ok'){
+        todosLosReportes=data.rows.map(parsearReporte);
+        const hoy=new Date().toLocaleDateString('es-SV');
+        reportesHoy=todosLosReportes.filter(r=>r.fecha===hoy);
+        renderGeneral();
+        if(vistaG==='dia') renderDia();
+        if(vistaG==='mes') renderMes('g');
+      }
+    }).catch(()=>{ocultarLoading();document.getElementById('g-lista').innerHTML='<div class="empty-state">Error al cargar. Toque "Actualizar datos".</div>';});
+}
+
+function cargarDatosCliente(){
+  mostrarLoading('Cargando datos...');
+  fetch(SCRIPT_URL+'?t='+Date.now())
+    .then(r=>r.json())
+    .then(data=>{
+      ocultarLoading();
+      if(data.status==='ok'){
+        todosLosReportes=data.rows.map(parsearReporte);
+        const hoy=new Date().toLocaleDateString('es-SV');
+        reportesHoy=todosLosReportes.filter(r=>r.fecha===hoy);
+        renderCliente();
+      }
+    }).catch(()=>{ocultarLoading();});
+}
+
+function calcMetricas(regs){
+  const presentes=regs.reduce((a,r)=>a+r.presentes,0);
+  const ausentes=regs.reduce((a,r)=>a+r.ausentes,0);
+  const incapacidad=regs.reduce((a,r)=>a+r.incapacidad,0);
+  const descanso=regs.reduce((a,r)=>a+r.descanso,0);
+  const renuncia=regs.reduce((a,r)=>a+r.renuncia,0);
+  const abandono=regs.reduce((a,r)=>a+r.abandono,0);
+  const despido=regs.reduce((a,r)=>a+r.despido,0);
+  const bajas=renuncia+abandono+despido;
+  const suma=incapacidad+descanso;
+  const coberturaReal=presentes+suma;
+  const activa=META-bajas;
+  const pct=META>0?Math.min(Math.round(coberturaReal/META*100),100):0;
+  return {presentes,ausentes,incapacidad,descanso,renuncia,abandono,despido,bajas,suma,coberturaReal,activa,pct};
+}
+
+function renderGeneral(){
+  const m=calcMetricas(reportesHoy);
+  document.getElementById('g-total').textContent=m.presentes;
+  document.getElementById('g-pct').textContent=m.pct+'%';
+  document.getElementById('g-pct2').textContent=m.pct+'%';
+  document.getElementById('g-ausentes').textContent=m.ausentes;
+  document.getElementById('g-activa').textContent=m.activa;
+  document.getElementById('g-bajas-sub').textContent=m.bajas>0?`${m.bajas} bajas este día`:'sin bajas hoy';
+  document.getElementById('g-barra').style.width=m.pct+'%';
+  const faltan=META-m.coberturaReal;
+  const est=document.getElementById('g-estado');
+  const bar=document.getElementById('g-barra');
+  const fat=document.getElementById('g-faltan');
+  if(faltan<=0){est.textContent='Cobertura completa ✓';est.className='metric-sub ok';bar.style.background='var(--verde)';fat.textContent='meta cumplida';}
+  else if(faltan<=30){est.textContent=`Faltan ${faltan}`;est.className='metric-sub warn';bar.style.background='var(--amarillo)';fat.textContent=`faltan ${faltan} de 630`;}
+  else{est.textContent=`Faltan ${faltan}`;est.className='metric-sub danger';bar.style.background='var(--rojo)';fat.textContent=`faltan ${faltan} de 630`;}
+  const banner=document.getElementById('g-banner');
+  if(reportesHoy.length===0){banner.style.display='block';banner.style.background='var(--amarillo-claro)';banner.style.color='#7a4c00';banner.textContent='⏳ Aún no hay reportes del día.';}
+  else{banner.style.display='none';}
+  renderListaSups(reportesHoy.filter(r=>filtroG==='todos'||r.turno===filtroG),'g-lista');
+}
+
+function renderListaSups(regs,id){
+  const lista=document.getElementById(id);
+  if(regs.length===0){lista.innerHTML='<div class="empty-state">No hay reportes para este turno</div>';return;}
+  lista.innerHTML=regs.map(r=>{
+    const tags=[];
+    if(r.incapacidad>0)tags.push(`<span class="rep-tag tag-suma">🏥 ${r.incapacidad}</span>`);
+    if(r.descanso>0)tags.push(`<span class="rep-tag tag-suma">😴 ${r.descanso}</span>`);
+    if(r.renuncia>0)tags.push(`<span class="rep-tag tag-resta">🚪 ${r.renuncia}</span>`);
+    if(r.abandono>0)tags.push(`<span class="rep-tag tag-resta">🏃 ${r.abandono}</span>`);
+    if(r.despido>0)tags.push(`<span class="rep-tag tag-resta">⚠️ ${r.despido}</span>`);
+    return `<div class="rep-row">
+      <div class="rep-avatar" style="${avatarStyle(r.turno)}">${iniciales(r.nombre)}</div>
+      <div class="rep-info">
+        <div class="rep-name">${r.nombre}</div>
+        <div class="rep-detail">${r.zona} · ${r.turno} · ${r.hora}</div>
+        ${tags.length>0?`<div class="rep-tags">${tags.join('')}</div>`:''}
+      </div>
+      <div class="rep-nums">
+        <div class="rep-num ok">${r.presentes}</div>
+        <div class="rep-num-label">presentes</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filtrarG(t,el){filtroG=t;document.querySelectorAll('#vista-hoy .tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderListaSups(reportesHoy.filter(r=>t==='todos'||r.turno===t),'g-lista');}
+
+function cambiarVista(v,el){
+  vistaG=v;
+  ['hoy','dia','mes'].forEach(x=>{
+    document.getElementById('vista-'+x).style.display=x===v?'block':'none';
+    const b=document.getElementById('vb-'+x);
+    b.style.background=x===v?'var(--verde)':'var(--gris-bg)';
+    b.style.color=x===v?'white':'var(--gris-texto)';
+    b.style.border=x===v?'none':'1.5px solid var(--gris-borde)';
+  });
+  if(v==='dia') renderDia();
+  if(v==='mes') renderMes('g');
+}
+
+function cambiarDia(d){diaOffset+=d;renderDia();}
+function filtrarDia(t,el){filtroDia=t;document.querySelectorAll('#vista-dia .tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderDia();}
+
+function renderDia(){
+  const fs=fechaStr(diaOffset);
+  const fn=fechaNombre(diaOffset);
+  document.getElementById('g-dia-titulo').textContent=diaOffset===0?`Hoy — ${fn}`:fn;
+  const regs=todosLosReportes.filter(r=>r.fecha===fs);
+  const m=calcMetricas(regs);
+  document.getElementById('g-dia-pres').textContent=m.presentes;
+  document.getElementById('g-dia-pct').textContent=m.pct+'%';
+  const bc=document.getElementById('g-dia-bajas-card');
+  if(m.bajas>0){
+    bc.style.display='block';
+    document.getElementById('g-dia-bajas-content').innerHTML=
+      `<div class="bajas-row"><span>🚪 Renuncias</span><span>${m.renuncia}</span></div>
+       <div class="bajas-row"><span>🏃 Abandonos</span><span>${m.abandono}</span></div>
+       <div class="bajas-row"><span>⚠️ Despidos</span><span>${m.despido}</span></div>
+       <div class="bajas-row" style="font-weight:600;border-top:1px solid #e8b4b0;padding-top:4px;margin-top:2px;"><span>Total bajas</span><span>${m.bajas}</span></div>`;
+  } else {bc.style.display='none';}
+  const filtrados=filtroDia==='todos'?regs:regs.filter(r=>r.turno===filtroDia);
+  renderListaSups(filtrados,'g-dia-lista');
+}
+
+function cambiarMes(d){mesVista+=d;if(mesVista>11){mesVista=0;anioVista++;}if(mesVista<0){mesVista=11;anioVista--;}renderMes('g');}
+
+function renderMes(prefix){
+  const pre=prefix==='g'?'g':'c';
+  const mv=prefix==='g'?mesVista:mesVistaC;
+  const av=prefix==='g'?anioVista:anioVistaC;
+  document.getElementById(pre+'-mes-titulo').textContent=`${MESES_LARGO[mv]} ${av}`;
+  const regs=todosLosReportes.filter(r=>{
+    const p=r.fecha.split('/');if(p.length<3)return false;
+    return parseInt(p[1])-1===mv&&parseInt(p[2])===av;
+  });
+  const hoy=new Date();
+  const diasT=mv===hoy.getMonth()&&av===hoy.getFullYear()?hoy.getDate():new Date(av,mv+1,0).getDate();
+  const diasConRep=new Set(regs.map(r=>r.fecha)).size;
+  const totalPres=regs.reduce((a,r)=>a+r.presentes,0);
+  const totalBajas=regs.reduce((a,r)=>a+(r.renuncia+r.abandono+r.despido),0);
+  const totalInc=regs.reduce((a,r)=>a+r.incapacidad,0);
+  const prom=diasConRep>0?Math.round(totalPres/diasConRep):0;
+  const pct=META>0?Math.round(prom/META*100):0;
+  document.getElementById(pre+'-mes-prom').textContent=prom;
+  document.getElementById(pre+'-mes-pct').textContent=pct+'%';
+  document.getElementById(pre+'-mes-dias').textContent=`${diasConRep} días con reporte`;
+  document.getElementById(pre+'-mes-bajas').textContent=totalBajas;
+  document.getElementById(pre+'-mes-inc').textContent=totalInc;
+  // Semanas
+  const semanas=[];
+  for(let s=0;s<5;s++){
+    const ini=s*7+1,fin=Math.min((s+1)*7,diasT);
+    if(ini>diasT)break;
+    const rSem=regs.filter(r=>{const p=r.fecha.split('/');const d=parseInt(p[0]);return d>=ini&&d<=fin;});
+    if(rSem.length===0)continue;
+    const mSem=calcMetricas(rSem);
+    const diasSem=new Set(rSem.map(r=>r.fecha)).size;
+    const promSem=diasSem>0?Math.round(mSem.presentes/diasSem):0;
+    const pctSem=Math.round(promSem/META*100);
+    semanas.push({ini,fin,promSem,pctSem,bajas:mSem.bajas,inc:mSem.incapacidad,des:mSem.descanso});
+  }
+  const color=p=>p>=90?'var(--verde)':p>=70?'var(--amarillo)':'var(--rojo)';
+  document.getElementById(pre+'-semanas').innerHTML=semanas.map((s,i)=>`
+    <div class="semana-row">
+      <div class="semana-header">
+        <div class="semana-titulo">Semana ${i+1} — días ${s.ini} al ${s.fin}</div>
+        <div class="semana-pct" style="color:${color(s.pctSem)}">${s.pctSem}%</div>
+      </div>
+      <div class="semana-detalle">
+        <span class="semana-item">👥 Prom/día: <strong>${s.promSem}</strong></span>
+        <span class="semana-item">🏥 Inc: ${s.inc}</span>
+        <span class="semana-item">😴 Desc: ${s.des}</span>
+        <span class="semana-item" style="color:var(--rojo);">❌ Bajas: ${s.bajas}</span>
+      </div>
+    </div>`).join('')||'<div class="empty-state">Sin registros este mes</div>';
+}
+
+function renderCliente(){
+  const m=calcMetricas(reportesHoy);
+  document.getElementById('c-total').textContent=m.presentes;
+  document.getElementById('c-pct').textContent=m.pct+'%';
+  document.getElementById('c-pct2').textContent=m.pct+'%';
+  document.getElementById('c-grupos').textContent=reportesHoy.length;
+  document.getElementById('c-activa').textContent=m.activa;
+  document.getElementById('c-bajas-sub').textContent=m.bajas>0?`${m.bajas} bajas hoy`:'sin bajas hoy';
+  document.getElementById('c-barra').style.width=m.pct+'%';
+  const faltan=META-m.coberturaReal;
+  const est=document.getElementById('c-estado');
+  if(faltan<=0){est.textContent='Cobertura completa ✓';est.className='metric-sub ok';}
+  else if(faltan<=30){est.textContent=`Faltan ${faltan}`;est.className='metric-sub warn';}
+  else{est.textContent=`Faltan ${faltan}`;est.className='metric-sub danger';}
+  renderListaSups(reportesHoy.filter(r=>filtroC==='todos'||r.turno===filtroC),'c-lista-hoy');
+}
+
+function filtrarC(t,el){filtroC=t;document.querySelectorAll('#c-vista-hoy .tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderListaSups(reportesHoy.filter(r=>t==='todos'||r.turno===t),'c-lista-hoy');}
+
+function cambiarVistaC(v,el){
+  vistaC=v;
+  ['hoy','dia','mes'].forEach(x=>{
+    document.getElementById('c-vista-'+x).style.display=x===v?'block':'none';
+    const b=document.getElementById('cvb-'+x);
+    b.style.background=x===v?'var(--amarillo)':'var(--gris-bg)';
+    b.style.color=x===v?'white':'var(--gris-texto)';
+    b.style.border=x===v?'none':'1.5px solid var(--gris-borde)';
+  });
+  if(v==='dia') renderDiaC();
+  if(v==='mes') renderMes('c');
+}
+
+function cambiarDiaC(d){diaOffsetC+=d;renderDiaC();}
+function filtrarDiaC(t,el){filtroDiaC=t;document.querySelectorAll('#c-vista-dia .tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderDiaC();}
+
+function renderDiaC(){
+  const fs=fechaStr(diaOffsetC);
+  const fn=fechaNombre(diaOffsetC);
+  document.getElementById('c-dia-titulo').textContent=diaOffsetC===0?`Hoy — ${fn}`:fn;
+  const regs=todosLosReportes.filter(r=>r.fecha===fs);
+  const m=calcMetricas(regs);
+  document.getElementById('c-dia-pres').textContent=m.presentes;
+  document.getElementById('c-dia-pct').textContent=m.pct+'%';
+  document.getElementById('c-dia-suma').textContent=m.suma;
+  document.getElementById('c-dia-resta').textContent=m.bajas;
+  const filtrados=filtroDiaC==='todos'?regs:regs.filter(r=>r.turno===filtroDiaC);
+  renderListaSups(filtrados,'c-dia-lista');
+}
+
+function cambiarMesC(d){mesVistaC+=d;if(mesVistaC>11){mesVistaC=0;anioVistaC++;}if(mesVistaC<0){mesVistaC=11;anioVistaC--;}renderMes('c');}
+
+function abrirWA(){
+  const m=calcMetricas(reportesHoy);
+  const faltan=META-m.coberturaReal;
+  const lineas=reportesHoy.map(r=>`  • ${r.nombre} (${r.zona}, ${r.turno}): ${r.presentes} pres.${r.renuncia>0?` 🚪${r.renuncia}`:''}${r.abandono>0?` 🏃${r.abandono}`:''}${r.incapacidad>0?` 🏥${r.incapacidad}`:''}${r.descanso>0?` 😴${r.descanso}`:''}`).join('\n');
+  const msg=`*REPORTE ASISTENCIA DIARIA*\n*Hospital Rosales — ${fechaHoy()}*\n\n*PRESENTES: ${m.presentes}* | Cobertura real: ${m.coberturaReal}/630 (${m.pct}%)\n${faltan>0?'⚠ Faltan: '+faltan:'✅ Meta cumplida'}\n\n📊 Desglose ausencias:\n🏥 Incapacidad: ${m.incapacidad} | 😴 Descanso: ${m.descanso}\n🚪 Renuncias: ${m.renuncia} | 🏃 Abandonos: ${m.abandono} | ⚠️ Despidos: ${m.despido}\n\n*Fuerza activa: ${m.activa}/630*\n\n*Por supervisor:*\n${lineas||'(sin reportes)'}\n\n_Generado automáticamente — ${horaAhora()}_`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+</script>
+</body>
+</html>
